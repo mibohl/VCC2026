@@ -129,6 +129,7 @@ def main():
     ap.add_argument("--min-shared", type=int, default=20)
     ap.add_argument("--contexts", nargs="*", help="restrict to these contexts")
     ap.add_argument("--effects", choices=["auto", "pooled", "batchmatched"], default="auto")
+    ap.add_argument("--involving", nargs="*", help="only pairs with at least one of these contexts")
     a = ap.parse_args()
     files = {f.stem: f for f in sorted(Path(a.summaries).glob("*.h5")) if f.with_suffix(".json").exists()
              and (not a.contexts or f.stem in a.contexts)}
@@ -141,7 +142,7 @@ def main():
     rows = []
     for ca, cb in itertools.combinations(sorted(tg), 2):
         shared = sorted(tg[ca] & tg[cb])
-        if len(shared) < a.min_shared:
+        if len(shared) < a.min_shared or (a.involving and not {ca, cb} & set(a.involving)):
             continue
         A, B = load(files[ca], shared, a.effects), load(files[cb], shared, a.effects)
         res = compare(ca, cb, A, B, shared)
