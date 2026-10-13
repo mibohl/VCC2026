@@ -1,8 +1,7 @@
 # data contexts: reader (src/clean/readers.py) + args + Slurm resources.
 # mem_mb: engine accumulators are ~84 B x targets x measured genes + the control pool; revised from measured peak RSS
-# (VIPerturb OOM at 48 GB, Orion 55-61 GB mid pass 2 -> 96 GB for the ~18k-target screens).
 contexts:
-  vcc2025__H1:            {reader: h1, mem_mb: 32000, runtime: 240, cpus: 4}
+  vcc2025__H1:            {reader: h1, min_umi: 1, mem_mb: 32000, runtime: 240, cpus: 4}
   adamson__k562:          {reader: scperturb, args: {study: adamson, context: adamson__k562}, mem_mb: 16000, runtime: 240, cpus: 4}
   frangieh__control:      {reader: scperturb, args: {study: frangieh, context: frangieh__control}, mem_mb: 32000, runtime: 240, cpus: 4}
   frangieh__ifng:         {reader: scperturb, args: {study: frangieh, context: frangieh__ifng}, mem_mb: 32000, runtime: 240, cpus: 4}
@@ -14,12 +13,47 @@ contexts:
   viperturb__k562:        {reader: viperturb, mem_mb: 96000, runtime: 1440, cpus: 4}
   orion__hct116:          {reader: orion, args: {line: HCT116, n_shards: 109}, mem_mb: 96000, runtime: 1440, cpus: 4}
   orion__hek293t:         {reader: orion, args: {line: HEK293T, n_shards: 223}, mem_mb: 96000, runtime: 1440, cpus: 4}
-  replogle_gwps__k562:    {reader: remote_rows, args: {kind: figshare, ref: 20029387, name: K562_gwps_raw_singlecell_01.h5ad}, mem_mb: 32000, runtime: 720, cpus: 4}
-  replogle_nadig__k562:   {reader: remote_rows, args: {kind: figshare, ref: 20029387, name: K562_essential_raw_singlecell_01.h5ad}, mem_mb: 16000, runtime: 240, cpus: 4}
-  replogle_nadig__rpe1:   {reader: remote_rows, args: {kind: figshare, ref: 20029387, name: rpe1_raw_singlecell_01.h5ad}, mem_mb: 16000, runtime: 240, cpus: 4}
-  replogle_nadig__jurkat: {reader: remote_rows, args: {kind: url, ref: "https://ftp.ncbi.nlm.nih.gov/geo/series/GSE264nnn/GSE264667/suppl/GSE264667_jurkat_raw_singlecell_01.h5ad"}, mem_mb: 16000, runtime: 240, cpus: 4}
-  replogle_nadig__hepg2:  {reader: remote_rows, args: {kind: url, ref: "https://ftp.ncbi.nlm.nih.gov/geo/series/GSE264nnn/GSE264667/suppl/GSE264667_hepg2_raw_singlecell_01.h5ad"}, mem_mb: 16000, runtime: 240, cpus: 4}
+  replogle_gwps__k562:    {reader: replogle_rows, args: {source: replogle2022, name: K562_gwps_raw_singlecell_01.h5ad}, mem_mb: 32000, runtime: 720, cpus: 4}
+  replogle_nadig__k562:   {reader: replogle_rows, args: {source: replogle2022, name: K562_essential_raw_singlecell_01.h5ad}, mem_mb: 16000, runtime: 240, cpus: 4}
+  replogle_nadig__rpe1:   {reader: replogle_rows, args: {source: replogle2022, name: rpe1_raw_singlecell_01.h5ad}, mem_mb: 16000, runtime: 240, cpus: 4}
+  replogle_nadig__jurkat: {reader: replogle_rows, args: {source: nadig2025, name: GSE264667_jurkat_raw_singlecell_01.h5ad}, mem_mb: 16000, runtime: 240, cpus: 4}
+  replogle_nadig__hepg2:  {reader: replogle_rows, args: {source: nadig2025, name: GSE264667_hepg2_raw_singlecell_01.h5ad}, mem_mb: 16000, runtime: 240, cpus: 4}
   kolf__hiPSC:            {reader: kolf, mem_mb: 48000, runtime: 1440, cpus: 4}
-  cd4t_marson2025__Rest:     {reader: cd4t, args: {cond: Rest}, mem_mb: 64000, runtime: 2880, cpus: 4}
-  cd4t_marson2025__Stim8hr:  {reader: cd4t, args: {cond: Stim8hr}, mem_mb: 64000, runtime: 2880, cpus: 4}
-  cd4t_marson2025__Stim48hr: {reader: cd4t, args: {cond: Stim48hr}, mem_mb: 64000, runtime: 2880, cpus: 4}
+  cd4t_marson2025__Rest:     {reader: cd4t, args: {cond: Rest}, mem_mb: 128000, runtime: 2880, cpus: 4}
+  cd4t_marson2025__Stim8hr:  {reader: cd4t, args: {cond: Stim8hr}, mem_mb: 128000, runtime: 2880, cpus: 4}
+  cd4t_marson2025__Stim48hr: {reader: cd4t, args: {cond: Stim48hr}, mem_mb: 128000, runtime: 2880, cpus: 4}
+  jiang2025_ifnb__a549:       {reader: jiang, args: {pathway: IFNB, line: A549}, mem_mb: 32000, runtime: 240, cpus: 4}
+  jiang2025_ifnb__bxpc3:      {reader: jiang, args: {pathway: IFNB, line: BXPC3}, mem_mb: 32000, runtime: 240, cpus: 4}
+  jiang2025_ifnb__hap1:       {reader: jiang, args: {pathway: IFNB, line: HAP1}, mem_mb: 32000, runtime: 240, cpus: 4}
+  jiang2025_ifnb__ht29:       {reader: jiang, args: {pathway: IFNB, line: HT29}, mem_mb: 32000, runtime: 240, cpus: 4}
+  jiang2025_ifnb__k562:       {reader: jiang, args: {pathway: IFNB, line: K562}, mem_mb: 32000, runtime: 240, cpus: 4}
+  jiang2025_ifnb__mcf7:       {reader: jiang, args: {pathway: IFNB, line: MCF7}, mem_mb: 32000, runtime: 240, cpus: 4}
+  jiang2025_ifng__a549:       {reader: jiang, args: {pathway: IFNG, line: A549}, mem_mb: 32000, runtime: 240, cpus: 4}
+  jiang2025_ifng__bxpc3:      {reader: jiang, args: {pathway: IFNG, line: BXPC3}, mem_mb: 32000, runtime: 240, cpus: 4}
+  jiang2025_ifng__hap1:       {reader: jiang, args: {pathway: IFNG, line: HAP1}, mem_mb: 32000, runtime: 240, cpus: 4}
+  jiang2025_ifng__ht29:       {reader: jiang, args: {pathway: IFNG, line: HT29}, mem_mb: 32000, runtime: 240, cpus: 4}
+  jiang2025_ifng__k562:       {reader: jiang, args: {pathway: IFNG, line: K562}, mem_mb: 32000, runtime: 240, cpus: 4}
+  jiang2025_ifng__mcf7:       {reader: jiang, args: {pathway: IFNG, line: MCF7}, mem_mb: 32000, runtime: 240, cpus: 4}
+  jiang2025_ins__a549:        {reader: jiang, args: {pathway: INS, line: A549}, mem_mb: 32000, runtime: 240, cpus: 4}
+  jiang2025_ins__bxpc3:       {reader: jiang, args: {pathway: INS, line: BXPC3}, mem_mb: 32000, runtime: 240, cpus: 4}
+  jiang2025_ins__hap1:        {reader: jiang, args: {pathway: INS, line: HAP1}, mem_mb: 32000, runtime: 240, cpus: 4}
+  jiang2025_ins__ht29:        {reader: jiang, args: {pathway: INS, line: HT29}, mem_mb: 32000, runtime: 240, cpus: 4}
+  jiang2025_ins__k562:        {reader: jiang, args: {pathway: INS, line: K562}, mem_mb: 32000, runtime: 240, cpus: 4}
+  jiang2025_ins__mcf7:        {reader: jiang, args: {pathway: INS, line: MCF7}, mem_mb: 32000, runtime: 240, cpus: 4}
+  jiang2025_tgfb__a549:       {reader: jiang, args: {pathway: TGFB, line: A549}, mem_mb: 32000, runtime: 240, cpus: 4}
+  jiang2025_tgfb__bxpc3:      {reader: jiang, args: {pathway: TGFB, line: BXPC3}, mem_mb: 32000, runtime: 240, cpus: 4}
+  jiang2025_tgfb__hap1:       {reader: jiang, args: {pathway: TGFB, line: HAP1}, mem_mb: 32000, runtime: 240, cpus: 4}
+  jiang2025_tgfb__ht29:       {reader: jiang, args: {pathway: TGFB, line: HT29}, mem_mb: 32000, runtime: 240, cpus: 4}
+  jiang2025_tgfb__k562:       {reader: jiang, args: {pathway: TGFB, line: K562}, mem_mb: 32000, runtime: 240, cpus: 4}
+  jiang2025_tgfb__mcf7:       {reader: jiang, args: {pathway: TGFB, line: MCF7}, mem_mb: 32000, runtime: 240, cpus: 4}
+  jiang2025_tnfa__a549:       {reader: jiang, args: {pathway: TNFA, line: A549}, mem_mb: 32000, runtime: 240, cpus: 4}
+  jiang2025_tnfa__bxpc3:      {reader: jiang, args: {pathway: TNFA, line: BXPC3}, mem_mb: 32000, runtime: 240, cpus: 4}
+  jiang2025_tnfa__hap1:       {reader: jiang, args: {pathway: TNFA, line: HAP1}, mem_mb: 32000, runtime: 240, cpus: 4}
+  jiang2025_tnfa__ht29:       {reader: jiang, args: {pathway: TNFA, line: HT29}, mem_mb: 32000, runtime: 240, cpus: 4}
+  jiang2025_tnfa__k562:       {reader: jiang, args: {pathway: TNFA, line: K562}, mem_mb: 32000, runtime: 240, cpus: 4}
+  jiang2025_tnfa__mcf7:       {reader: jiang, args: {pathway: TNFA, line: MCF7}, mem_mb: 32000, runtime: 240, cpus: 4}
+  replogle2020__k562:         {reader: replogle2020, mem_mb: 32000, runtime: 120, cpus: 4}
+  sunshine__calu3:            {reader: scperturb, args: {study: sunshine, context: sunshine__calu3}, mem_mb: 32000, runtime: 240, cpus: 4}
+  mcfaline2023__a172:         {reader: mcfaline, args: {line: A172}, mem_mb: 32000, runtime: 240, cpus: 4}
+  mcfaline2023__t98g:         {reader: mcfaline, args: {line: T98G}, mem_mb: 32000, runtime: 240, cpus: 4}
+  mcfaline2023__u87mg:        {reader: mcfaline, args: {line: U87MG}, mem_mb: 32000, runtime: 240, cpus: 4}

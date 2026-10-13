@@ -2,11 +2,13 @@
 import hashlib
 import json
 import os
+import shutil
 from pathlib import Path
 import subprocess
 import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
+UA = 'curl/7.68.0'
 
 
 def digest(path, algorithm='sha256'):
@@ -38,16 +40,24 @@ def download(url, dest, size=None, md5=None, tries=5):
             return dest
         raise ValueError(f'{dest}: cached input failed validation; remove it explicitly before retrying')
     if size is None:
-        with urllib.request.urlopen(urllib.request.Request(url, method='HEAD'), timeout=120) as response:
+        with urllib.request.urlopen(urllib.request.Request(url, method='HEAD', headers={'User-Agent': UA}),
+                                    timeout=120) as response:
             value = response.headers.get('Content-Length')
             if value is not None:
                 size = int(value)
     if size is None and md5 is None:
         raise ValueError(f'{url}: neither upstream size nor checksum is available')
     part = dest.with_name(dest.name + '.part')
+    aria2 = shutil.which('aria2c')
     for attempt in range(tries):
-        result = subprocess.run(['curl', '-fsSL', '--retry', '3', '--connect-timeout', '60',
-                                 '-C', '-', '-o', str(part), url])
+        if aria2:
+            cmd = [aria2, '--quiet=true', '--continue=true', '--split=16', '--max-connection-per-server=16',
+                   '--min-split-size=16M', '--file-allocation=none', '--max-tries=20', '--retry-wait=5',
+                   '--timeout=60', '--no-want-digest-header=true', f'--user-agent={UA}', '--auto-file-renaming=false',
+                   '--allow-overwrite=false', '--dir', str(part.parent), '--out', part.name, url]
+        else:
+            cmd = ['curl', '-fsSL', '--retry', '3', '--connect-timeout', '60', '-C', '-', '-o', str(part), url]
+        result = subprocess.run(cmd)
         if result.returncode == 0 and part.exists() and (size is None or part.stat().st_size == size):
             break
         print(f'WARNING download {attempt + 1}/{tries} failed or incomplete: {url}', flush=True)

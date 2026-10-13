@@ -8,4 +8,5 @@ set -euo pipefail
 # Submit from the project root: sbatch scripts/workflow.sbatch [targets...]
 cd "${SLURM_SUBMIT_DIR:?}"
 test -f workflow/Snakefile
-bash scripts/run_job.sh pixi run snakemake -s workflow/Snakefile --workflow-profile workflow/profiles/slurm --rerun-incomplete --keep-going "$@"
+mkdir -p logs/slurm
+bash scripts/run_job.sh pixi run snakemake -s workflow/Snakefile --workflow-profile "workflow/profiles/${WORKFLOW_PROFILE:-slurm}" --rerun-incomplete --keep-going "$@"

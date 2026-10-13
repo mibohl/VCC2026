@@ -27,7 +27,7 @@ from score import ANCHORS_2026, SCORED, scale
 CTRL, PERT_COL = 'non-targeting', 'target'
 
 
-def load_predictions(path, genes, targets):
+def load_predictions(path, genes, targets, bulk_gain=.25):
     with np.load(path, allow_pickle=False) as z:
         if not {'genes', 'perts', 'lfc', 'source'} <= set(z.files):
             raise ValueError('Prediction requires genes, perts, lfc, and source')
@@ -45,12 +45,11 @@ def load_predictions(path, genes, targets):
             if value.shape != (300, len(genes)) or not np.isfinite(value).all():
                 raise ValueError(f'{name}: expected finite [300, {len(genes)}] matrix')
             value = value[order].astype(np.float64)
-            # Keep the existing bulk-channel gain without bounding either LFC channel.
             if name == 'lfc_bulk':
-                value *= .25
+                value *= bulk_gain
             matrices[name] = value
         if 'lfc_bulk' not in matrices:
-            matrices['lfc_bulk'] = .25 * matrices['lfc']
+            matrices['lfc_bulk'] = bulk_gain * matrices['lfc']
         if z['source'].ndim != 0:
             raise ValueError('source must be a scalar string')
         return matrices, dict(source=str(z['source']))
@@ -96,15 +95,23 @@ def main():
     ap.add_argument('--predictions', required=True)
     ap.add_argument('--out', required=True)
     ap.add_argument('--seed', type=int, default=0)
-    
+    ap.add_argument('--bulk-gain', type=float, default=.25,
+                    help='share of the LFC realized in the pooled pseudobulk (pds, mse); 1 realizes all of it')
+    ap.add_argument('--reference', help='one h5ad used as the real reference and control source instead of the three '
+                                        'H1 files (e.g. scripts/h1_reference_20k.py output, 20k UMI)')
+    ap.add_argument('--holdout', help='npz of target -> source-file rows never sampled as the reference (the cells a '
+                                      'held-out prediction was built from; scripts/h1_heldout_predictions.py)')
     args = ap.parse_args()
     if not os.environ.get('SLURM_JOB_ID'):
         ap.error('H1 evaluation must run inside Slurm')
     if args.seed < 0:
         ap.error('Require seed >= 0')
+    if args.reference and args.holdout:
+        ap.error('--holdout rows refer to the three H1 files; build the --reference without those cells instead')
     pred_path, out = Path(args.predictions).resolve(), Path(args.out).resolve()
     validate_h1()
-    real_paths = [ROOT / f'data/vcc2025/adata_{s}.h5ad' for s in ('Training', 'Validation', 'Test')]
+    real_paths = ([Path(args.reference).resolve()] if args.reference else
+                  [ROOT / f'data/vcc2025/adata_{s}.h5ad' for s in ('Training', 'Validation', 'Test')])
     sources = [ad.read_h5ad(path, backed='r') for path in real_paths]
     try:
         genes = sources[0].var_names.to_numpy().astype(str)
@@ -114,7 +121,7 @@ def main():
             for target in sorted(set(labels) - {CTRL}):
                 where[target] = (index, np.flatnonzero(labels == target))
         targets = sorted(where)
-        matrices, pred_info = load_predictions(pred_path, genes, targets)
+        matrices, pred_info = load_predictions(pred_path, genes, targets, args.bulk_gain)
         cfg = EvalConfig.from_preset('vcc2026')
         cfg.de = replace(cfg.de, backend='pdex', clip_value=None)
         cfg.device = 'cpu'
@@ -124,7 +131,8 @@ def main():
         code = [Path(__file__), ROOT / 'src/encoder.py', ROOT / 'src/score.py']
         metadata = dict(predictions_sha256=digest(pred_path), seed=args.seed, count_protocol='original_umi_v1',
                         n_perts=300, n_cells=400, block_size=25, cell_weight_scale=1,
-                        bulk_gain=.25, prediction=pred_info, preset=repr(cfg),
+                        bulk_gain=args.bulk_gain, holdout_sha256=digest(Path(args.holdout)) if args.holdout else None,
+                        prediction=pred_info, preset=repr(cfg),
                         code_sha256={p.name:digest(p) for p in code},
                         reference=[dict(path=p.name, bytes=p.stat().st_size, mtime_ns=p.stat().st_mtime_ns)
                                    for p in real_paths], cell_eval2_revision='5e64833518a6603a0301cbe28185d49c30f4a986')
@@ -139,8 +147,11 @@ def main():
         _, p_pool, alpha = fit_depth(ctrl, p, libs)
         sampling_rng = np.random.default_rng(args.seed)
         selections = {}
+        hold = np.load(args.holdout) if args.holdout else None
         for target in targets:
             _, rows = where[target]
+            if hold is not None:
+                rows = np.setdiff1d(rows, hold[target])
             if len(rows) < 400:
                 print(f'WARNING {target}: only {len(rows)} reference cells; keeping all', flush=True)
             selections[target] = rows if len(rows) < 400 else np.sort(sampling_rng.choice(rows, 400, replace=False))
