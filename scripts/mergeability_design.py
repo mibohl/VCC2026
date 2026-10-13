@@ -81,7 +81,10 @@ def summarize(g, rng):
     boot = [weighted_median(x[i], w[i]) for i in rng.integers(0, len(x), (N_BOOT, len(x)))] if len(x) > 1 else [x[0]]
     return pd.Series(dict(n_pairs=len(g), n_reliable=int(w.sum()), r_disatt=weighted_median(x, w),
                           lo=np.quantile(boot, .025), hi=np.quantile(boot, .975), q1=g.r_disatt.quantile(.25),
-                          q3=g.r_disatt.quantile(.75), r_centered=weighted_median(g.r_centered.to_numpy(), w),
+                          q3=g.r_disatt.quantile(.75), r=weighted_median(g.r.to_numpy(), w),
+                          r_centered=weighted_median(g.r_centered.to_numpy(), w),
+                          r_disatt_pooled=weighted_median(g.r_disatt_pooled.fillna(g.r_disatt).to_numpy(), w),
+                          n_pairs_batchmatched=int(g.effects.str.contains("batch-matched").sum()),
                           slope_lfc=g.slope_lfc.median()))
 
 
