@@ -671,8 +671,7 @@ class ReplogleRows:
 # ----------------------------------------------------------------------------------- KOLF2.1J
 class Kolf:
     """KOLF2.1J h5ad (figshare+ 27261219) read in gene blocks from its CSC counts."""
-    batch_key = None
-    batch_labels = None
+    batch_key = "obs/batch (sub-library; every target lies in exactly one)"
 
     def __init__(self, tmp=None, max_nnz=24_000_000):
         from add_dispersion import KOLF_ART, KOLF_FILE
@@ -682,6 +681,7 @@ class Kolf:
         h = self._open()
         self.is_ctrl = cat(h, "obs/perturbed") == "False"
         self.lab = cat(h, "obs/gene_target")
+        self.batch_labels = cat(h, "obs/batch")
         print(f"kolf: {len(self.lab):,} cells, {int(self.is_ctrl.sum()):,} controls; gene_target of controls: "
               f"{pd.Series(self.lab[self.is_ctrl]).value_counts().head(3).to_dict()}", flush=True)
         self.genes = index_of(h, "var")
@@ -731,7 +731,7 @@ class Kolf:
                 yield from gmj.add(j, r, v)
             yield from gmj.flush(final=True)
             gmj.check_done()
-        run_gene_major(blocks(), eng, L, grp, self.is_ctrl, qc, log, min_umi)
+        run_gene_major(blocks(), eng, L, grp, self.is_ctrl, qc, log, min_umi, self.batch_labels)
 
 
 # ----------------------------------------------------------------------------------- CD4+ T (Marson 2025)
