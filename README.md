@@ -4,17 +4,14 @@ Virtual Cell Challenge 2026 repo on tunguska
 
 ## Layout
 
-| Folder | What it holds | In git |
-| --- | --- | --- |
-| [`data_processing/`](data_processing/) | Snakemake workflow, readers and download scripts that turn public perturbation screens into per-context summaries | yes |
-| [`data/`](data/) | Processed summaries (`<context>.h5` / `.json`), raw downloads, H1 and VCC2026 reference files | README only |
-| [`tools/`](tools/) | Reusable parts: the cell generator and the H1 evaluator | yes |
-| [`experiments/`](experiments/) | The playground: analyses built on the summaries (mergeability, coverage, QC, H1 baselines) | yes |
-| [`results/`](results/) | Outputs of experiments and evaluations | README only |
-| [`logs/`](logs/) | Slurm, Snakemake and ad hoc job logs | README only |
-
-Top-level files: `pixi.toml` / `pixi.lock` (one environment for the whole project), `VCC_token.txt`
-(credentials, never committed).
+| Folder | What it holds |
+| --- | --- | 
+| [`data_processing/`](data_processing/) | Snakemake workflow, readers and download scripts that turn public perturbation screens into per-context summaries |
+| [`data/`](data/) | Processed summaries (`<context>.h5` / `.json`), raw downloads, H1 and VCC2026 reference files |
+| [`tools/`](tools/) | Reusable parts: the cell generator and the H1 evaluator | 
+| [`experiments/`](experiments/) | The playground: analyses built on the summaries (mergeability, coverage, QC, H1 baselines) |
+| [`results/`](results/) | Outputs of experiments and evaluations |
+| [`logs/`](logs/) | Slurm, Snakemake and ad hoc job logs |
 
 ## Setup
 
