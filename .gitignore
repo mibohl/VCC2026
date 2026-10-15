@@ -1,7 +1,20 @@
-data/
-logs/
-results/
+# Large or machine-specific folders: only their README is tracked
+/data/*
+!/data/README.md
+/results/*
+!/results/README.md
+/logs/*
+!/logs/README.md
+
+# Secrets
+VCC_token.txt
+
+# Environments and caches
 .pixi/
+.pixi-cache/
 .cache/
 .snakemake/
 __pycache__/
+
+# Leftover of the old checkout (its pixi env belongs to another user)
+/VCC2026/

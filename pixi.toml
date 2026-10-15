@@ -6,8 +6,8 @@ platforms = ["linux-64"]
 version = "0.1.0"
 
 [tasks]
-smoke = "python tests/smoke.py"
-dry-run = "bash scripts/dry_run.sh"
+smoke = "python data_processing/tests/smoke.py"
+dry-run = "bash data_processing/scripts/dry_run.sh"
 
 [dependencies]
 python = "3.12.*"
